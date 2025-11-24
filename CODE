@@ -1,0 +1,149 @@
+import json
+import os
+import random
+import time
+from datetime import datetime
+
+class SchoolAccountant:
+    def __init__(self):
+        self.db_file = "school_accounts.json"
+        self.data = self.load_db()
+        self.accountant = "Utkarsh Agarwal"
+        self.auth_id = "25BCY10191"
+
+    def load_db(self):
+        if os.path.exists(self.db_file):
+            try:
+                with open(self.db_file, "r") as f: return json.load(f)
+            except: return {}
+        return {}
+
+    def save_db(self):
+        with open(self.db_file, "w") as f: json.dump(self.data, f, indent=4)
+
+    def clear(self): os.system('cls' if os.name == 'nt' else 'clear')
+
+    def header(self):
+        self.clear()
+        print("=" * 60)
+        print("\t\t VIT ACCOUNTS DEPT   ")
+        print(f"   Auth User: {self.accountant} | ID: {self.auth_id}")
+        print("=" * 60)
+
+    def financial_overview(self):
+        """Macro view of the school's financial health."""
+        self.header()
+        print("\n--- FINANCIAL LEDGER SUMMARY ---")
+        
+        total_exp = sum(s['total_fee'] for s in self.data.values())
+        total_col = sum(s['paid'] for s in self.data.values())
+        outstanding = total_exp - total_col
+        
+        print(f"Total Accounts Managed : {len(self.data)}")
+        print("-" * 40)
+        print(f"Total Receivable (AR)  : ₹ {total_exp:,.2f}")
+        print(f"Total Collected (Cash) : ₹ {total_col:,.2f}")
+        print(f"Outstanding Deficit    : ₹ {outstanding:,.2f}")
+        print("-" * 40)
+        input("\n[ENTER] Return to Menu...")
+
+    def create_ledger(self):
+        """Creates a new financial record for a student."""
+        self.header()
+        print("\n--- OPEN NEW STUDENT LEDGER ---")
+        
+        name = input("Student Name: ").strip().upper()
+        if not name: return
+        grade = input("Class/Grade : ").strip().upper()
+        try:
+            fee = float(input("Set Annual Fee (₹): "))
+        except ValueError: return
+
+        reg_no = str(random.randint(10000, 99999))
+        while reg_no in self.data: reg_no = str(random.randint(10000, 99999))
+
+        self.data[reg_no] = {
+            "name": name, "class": grade, "total_fee": fee, "paid": 0.0,
+            "last_txn_date": "N/A", "status": "OPEN"
+        }
+        self.save_db()
+        print(f"\n[SUCCESS] Ledger created. Reg No: {reg_no}")
+        time.sleep(1.5)
+
+    def record_transaction(self):
+        """The accountant receives money and updates the book."""
+        self.header()
+        print("\n--- RECORD INCOMING PAYMENT ---")
+        
+        reg = input("Enter Reg No: ").strip()
+        if reg not in self.data:
+            print("!! Account not found in ledger !!"); time.sleep(1); return
+
+        stu = self.data[reg]
+        due = stu['total_fee'] - stu['paid']
+        
+        print(f"\nACCOUNT: {stu['name']} ({stu['class']})")
+        print(f"OUTSTANDING BALANCE: ₹ {due:,.2f}")
+        
+        if due <= 0: print(">> Account is Settled (No Dues)."); time.sleep(2); return
+
+        try:
+            amount = float(input("\nAmount Received (₹): "))
+            if amount <= 0: return
+            mode = input("Mode (Cash/UPI/DD): ").upper()
+        except ValueError: return
+
+        stu['paid'] += amount
+        stu['last_txn_date'] = datetime.now().strftime("%Y-%m-%d %H:%M")
+        self.save_db()
+        
+        print("\n" + "*"*30)
+        print("   OFFICIAL RECEIPT GENERATED")
+        print(f"   Date: {stu['last_txn_date']}")
+        print(f"   Received: ₹ {amount:,.2f} ({mode})")
+        print(f"   New Balance: ₹ {stu['total_fee'] - stu['paid']:,.2f}")
+        print("*"*30)
+        input("\n[ENTER] Confirm & Print...")
+
+    def audit_accounts(self):
+        """List accounts with focus on debts."""
+        self.header()
+        print("\n--- ACCOUNT AUDIT ---")
+        print(f"{'Reg No':<8} | {'Name':<18} | {'Total(₹)':<10} | {'Paid(₹)':<10} | {'Due(₹)':<10}")
+        print("-" * 70)
+        
+        for reg, d in self.data.items():
+            due = d['total_fee'] - d['paid']
+            # Highlight defaulters with a '*'
+            flag = "*" if due > 0 else " "
+            print(f"{reg:<8} | {d['name']:<18} | {d['total_fee']:<10} | {d['paid']:<10} | {due:<10} {flag}")
+
+        print("\nCommands: [DEL] Delete Account  [ENTER] Back")
+        if input("Action: ").upper() == 'DEL':
+            target = input("Confirm Reg No to Close: ")
+            if target in self.data:
+                del self.data[target]
+                self.save_db()
+                print(">> Account Closed/Deleted.")
+                time.sleep(1)
+
+    def run(self):
+        while True:
+            self.header()
+            print("\n1. Financial Ledger")
+            print("2. Create Student Ledger")
+            print("3. Record Transaction")
+            print("4. Audit Accounts")
+            print("5. Log Out")
+            
+            opt = input("\nSelect Action [1-5]: ")
+            
+            if opt == '1': self.financial_overview()
+            elif opt == '2': self.create_ledger()
+            elif opt == '3': self.record_transaction()
+            elif opt == '4': self.audit_accounts()
+            elif opt == '5': 
+                print("\nSaving Books... Logging out."); break
+
+if __name__ == "__main__":
+    SchoolAccountant().run()
