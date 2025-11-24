@@ -1,0 +1,181 @@
+Project Report: VIT Financial
+Management System (CLI)
+Student Name: Utkarsh Agarwal
+Registration ID: 25BCY10191
+Course: B.Tech In CSE with cybersecurity
+1. Introduction
+The VIT Financial Management System is a specialized software solution developed to
+modernize and streamline the financial operations of an educational institution's accounts
+department. Unlike traditional web-based portals which depend on internet connectivity and
+browser rendering, this system utilizes a high-performance Command Line Interface (CLI) to
+offer instant response times for data entry and retrieval. It serves as a digital ledger, replacing
+manual logbooks and complex spreadsheets with a structured, automated, and persistent data
+management system.
+2. Problem Statement
+Managing student fees involves handling thousands of records, calculating deficits, and
+generating receipts. Manual methods are prone to calculation errors and physical loss of data.
+Conversely, large-scale Enterprise Resource Planning (ERP) systems are often too expensive,
+require heavy hardware, and suffer from network latency. There is a critical need for a
+"middleware" solution—a lightweight, offline-first tool that allows accountants to record
+transactions rapidly without waiting for server responses or navigating complex GUIs.
+3. Functional Requirements
+The system fulfills the following core functional requirements:
+1. Dashboard Visualization: The system must calculate and display total expected fees,
+total collected amount, and total pending dues upon startup.
+2. Ledger Creation (Admission): The system must allow the user to input student details
+(Name, Class, Annual Fee) and auto-generate a unique 5-digit Registration ID.
+3. Transaction Recording: The system must allow users to search by ID, view current dues,
+and record payments. It must validate that the payment does not exceed the due amount.
+4. Data Persistence: All data must be saved to a local file (school
+_
+accounts.json)
+immediately after any modification (Create/Update/Delete).
+5. Audit Capabilities: The system must generate a list of all students and visually highlight
+those with outstanding dues.
+4. Non-functional Requirements
+1. Performance: The system must load student records and perform searches in under 1
+second (O(1) lookup complexity via Hash Maps).
+2. Reliability: The system must implement auto-saving to prevent data loss in case of an
+unexpected program termination.
+3. Usability: The interface must be text-based but intuitive, using clear menus and
+confirmation prompts to prevent accidental data entry.
+4. Portability: The application must run on any standard OS (Windows/Linux/macOS) with a
+Python interpreter, requiring no external database installation.
+5. System Architecture
+The project follows a modular, Object-Oriented architecture:
+●
+●
+●
+Data Layer: school
+_
+accounts.json serves as the persistent storage.
+Logic Layer: The SchoolAccountant class encapsulates all business logic (calculations,
+validations, ID generation).
+Presentation Layer: The CLI methods (header(), clear(), print) handle user interaction and
+formatting.
+Architecture Diagram (Conceptual):
+User (Accountant) <--> CLI Interface (Menu) <--> Controller (Python Logic) <--> JSON Storage
+6. Design Diagrams
+6.1 Use Case Diagram
+●
+●
+Actor: Accountant
+Use Cases:
+○
+View Dashboard
+○
+Create Ledger
+○
+Record Transaction
+○
+Audit Accounts
+○
+Delete Account
+6.2 Class Diagram
+●
+●
+●
+Class: SchoolAccountant
+Attributes: db
+file, data, accountant
+name, auth
+_
+_
+_
+Methods:
+○
+init
+__
+○
+__(): Initializes app and loads DB.
+load
+_
+id○
+db(): deserializes JSON data.
+○
+○
+create
+_
+ledger(): Generates ID and stores student object.
+record
+_
+transaction(): Updates payment balance.
+financial
+_
+overview(): Aggregates statistics.
+6.3 Workflow (Transaction)
+1. Start
+2. User selects "Record Transaction"
+3. System requests Reg ID
+4. Decision: Does ID exist?
+○
+No: Show Error -> End.
+○
+Yes: Show Student Details & Dues.
+5. Decision: Are Dues > 0?
+○
+No: Show "Settled"
+-> End.
+○
+Yes: Request Payment Amount.
+6. Update Balance -> Save to JSON -> Print Receipt.
+7. End.
+7. Design Decisions & Rationale
+●
+●
+●
+Why JSON? A full SQL database (MySQL/PostgreSQL) adds significant setup overhead
+(drivers, servers). JSON was chosen for its native compatibility with Python dictionaries
+and ease of portability.
+Why CLI? Graphical Interfaces (Tkinter/PyQt) consume more system resources and are
+slower to develop. A CLI offers the fastest "Time to Interaction" for data entry professionals
+who prefer keyboard shortcuts over mouse clicks.
+Random ID Generation: Used to simulate real-world unique identifiers, preventing privacy
+issues associated with sequential IDs.
+8. Implementation Details
+The project is implemented in Python 3.x .
+●
+●
+●
+Core Library: json is used for serialization/deserialization.
+Data Structure: A Python Dictionary (Hash Map) is used to store student records, where
+the Key is the Reg No and the Value is a nested dictionary of details. This ensures that
+searching for a student is instantaneous, regardless of database size.
+Error Handling: try-except blocks are used during file I/O and user input (converting
+strings to floats) to prevent the application from crashing.
+9. Screenshots / Results10. Testing Approach
+●
+●
+Unit Testing (Manual):
+○
+Test: Enter a non-existent ID. Result: System displayed
+"Account not found"
+.
+○
+○
+transaction.
+Persistence Testing:
+○
+Test: Try to pay negative amount. Result: System ignored input.
+Test: Try to pay more than due. Result: System displayed warning and blocked
+Created a user, closed the app, and reopened it. The user data persisted correctly.
+11. Challenges Faced
+1. Data Integrity: Initially, if the program crashed during a write operation, the JSON file
+could corrupt. This was mitigated by ensuring minimal file open times.2. Input Validation: Handling users entering text
+where numbers were expected (e.g.,
+Amount: "Ten Thousand") required robust try-except implementation.
+12. Learnings & Key Takeaways
+●
+●
+●
+Mastered the use of File I/O in Python for persistent storage.
+Learned how to design "defensive" code that anticipates user errors.
+Understood the importance of separating the "Data Layer" (JSON handling) from the
+"Presentation Layer" (Print statements).
+13. Future Enhancements
+1. Export to CSV: Add functionality to export the audit list to Excel/CSV for reporting.
+2. Password Protection: Implement a login system to prevent unauthorized access.
+3. Cloud Sync: Integrate with Firebase or AWS S3 to backup the JSON file remotely.
+14. References
+1. Python 3 Documentation: https://docs.python.org/3/
+2. JSON Data Interchange Format: https://www.json.org/
